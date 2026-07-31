@@ -69,7 +69,7 @@ describe('App learning flow', () => {
 
     await user.click(screen.getByRole('button', { name: /check my second try/i }))
     expect(screen.getByText('Compare your path with the walkthrough.')).toBeInTheDocument()
-    expect(screen.getByText('The napkin version')).toBeInTheDocument()
+    expect(screen.getByText('The envelope version')).toBeInTheDocument()
   })
 
   it('reopens the introduction from the header without resetting progress', async () => {

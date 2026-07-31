@@ -1,4 +1,4 @@
-# Back of the Napkin
+# Back of the Envelope
 
 A single-page learning app for practising back-of-the-envelope system-design calculations. It teaches the reasoning around an estimate—formula selection, order of magnitude, units, and design consequences—not only the final number.
 

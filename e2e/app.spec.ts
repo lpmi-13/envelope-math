@@ -22,12 +22,17 @@ test.afterEach(async ({ page }) => {
 })
 
 test('shows the complete lesson map, quick reference, and social preview metadata', async ({ page, request }) => {
+  await expect(page.getByText('Envelope Math', { exact: true })).toBeVisible()
   await expect(page.getByRole('heading', { name: /estimate at the speed of thought/i })).toBeVisible()
   await expect(page.locator('.module-card')).toHaveCount(6)
 
+  await expect(page.locator('link[rel="canonical"]')).toHaveAttribute(
+    'href',
+    'https://envelope-math.netlify.app/',
+  )
   await expect(page.locator('meta[property="og:image"]')).toHaveAttribute(
     'content',
-    'https://napkin-math.netlify.app/social-preview.png',
+    'https://envelope-math.netlify.app/social-preview.png',
   )
   await expect(page.locator('meta[name="twitter:card"]')).toHaveAttribute(
     'content',
@@ -44,7 +49,7 @@ test('shows the complete lesson map, quick reference, and social preview metadat
   expect(document.headers()['x-frame-options']).toBe('DENY')
 
   await page.getByRole('button', { name: 'Reference' }).click()
-  await expect(page.getByRole('heading', { name: 'Your pocket napkin' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Your envelope reference' })).toBeVisible()
   await expect(page.getByText('1 day ≈ 10⁵ seconds')).toBeVisible()
 })
 

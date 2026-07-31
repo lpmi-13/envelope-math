@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import {
   completionPercent,
   createInitialProgress,
@@ -7,6 +7,7 @@ import {
   isReviewDue,
   loadProgress,
   recordAttempt,
+  STORAGE_KEY,
 } from './progress'
 import type { GradeResult } from './types'
 
@@ -47,6 +48,19 @@ describe('progress', () => {
   it('recovers safely from corrupt persisted data', () => {
     const progress = loadProgress({ getItem: () => '{bad json' })
     expect(progress).toEqual(createInitialProgress())
+  })
+
+  it('migrates progress saved under the previous brand key', () => {
+    const serialized = JSON.stringify(createInitialProgress())
+    const setItem = vi.fn()
+    const removeItem = vi.fn()
+    const getItem = vi.fn()
+      .mockReturnValueOnce(null)
+      .mockReturnValueOnce(serialized)
+
+    expect(loadProgress({ getItem, setItem, removeItem })).toEqual(createInitialProgress())
+    expect(setItem).toHaveBeenCalledWith(STORAGE_KEY, serialized)
+    expect(removeItem).toHaveBeenCalledOnce()
   })
 
   it('marks prior practice for delayed review', () => {

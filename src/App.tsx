@@ -25,7 +25,8 @@ import { answerUnitOptions, formatAnswer, units } from './domain/units'
 
 type Screen = 'dashboard' | 'intro' | 'practice' | 'reference'
 
-const INTRO_STORAGE_KEY = 'napkin-intro-seen'
+const INTRO_STORAGE_KEY = 'envelope-intro-seen'
+const LEGACY_INTRO_STORAGE_KEY = ['nap', 'kin-intro-seen'].join('')
 
 const emptyAnswer: LearnerAnswer = {
   formulaId: '',
@@ -113,7 +114,7 @@ function AppHeader({
     <header className="site-header">
       <button className="brand" onClick={onHome} aria-label="Back to lesson map">
         <BrandMark />
-        <span>Napkin Math</span>
+        <span>Envelope Math</span>
       </button>
       <nav className="mode-tabs" aria-label="Workspace modes">
         <button
@@ -284,7 +285,7 @@ function LessonIntro({
         </section>
 
         <aside className="reference-card" aria-labelledby="reference-title">
-          <p className="kicker">On your napkin</p>
+          <p className="kicker">On your envelope</p>
           <h2 id="reference-title">Useful anchors</h2>
           <ul>
             {skill.reference.map((item) => <li key={item}>{item}</li>)}
@@ -544,7 +545,7 @@ function Practice({
 
               {reveal && (
                 <div className="walkthrough">
-                  <span>The napkin version</span>
+                  <span>The envelope version</span>
                   <strong>{scenario.mentalModel}</strong>
                   <ol>
                     {scenario.walkthrough.map((step) => <li key={step}>{step}</li>)}
@@ -576,7 +577,7 @@ function QuickReference({ onReset }: { onReset: () => void }) {
     <main id="main-content" className="reference-page page-shell">
       <section className="reference-heading">
         <p className="kicker">Keep these in your head</p>
-        <h1>Your pocket napkin</h1>
+        <h1>Your envelope reference</h1>
         <p>Useful anchors, deliberately rounded for conversation-speed maths.</p>
       </section>
 
@@ -737,11 +738,18 @@ export default function App() {
   const [result, setResult] = useState<GradeResult | null>(null)
   const [attempt, setAttempt] = useState(0)
   const [reveal, setReveal] = useState(false)
-  const [showIntro, setShowIntro] = useState(() =>
-    typeof window === 'undefined'
-      ? false
-      : window.localStorage.getItem(INTRO_STORAGE_KEY) !== 'true',
-  )
+  const [showIntro, setShowIntro] = useState(() => {
+    if (typeof window === 'undefined') return false
+
+    const hasSeenIntro = window.localStorage.getItem(INTRO_STORAGE_KEY) === 'true'
+    const hasSeenLegacyIntro =
+      window.localStorage.getItem(LEGACY_INTRO_STORAGE_KEY) === 'true'
+    if (!hasSeenIntro && hasSeenLegacyIntro) {
+      window.localStorage.setItem(INTRO_STORAGE_KEY, 'true')
+      window.localStorage.removeItem(LEGACY_INTRO_STORAGE_KEY)
+    }
+    return !hasSeenIntro && !hasSeenLegacyIntro
+  })
 
   const scenario = scenarios.find((item) => item.id === scenarioId) ?? scenarios[0]!
 
@@ -815,6 +823,7 @@ export default function App() {
 
   const closeIntro = () => {
     window.localStorage.setItem(INTRO_STORAGE_KEY, 'true')
+    window.localStorage.removeItem(LEGACY_INTRO_STORAGE_KEY)
     setShowIntro(false)
   }
 

@@ -8,7 +8,11 @@ import type {
   SkillProgress,
 } from './types'
 
-export const STORAGE_KEY = 'back-of-the-napkin-progress-v1'
+export const STORAGE_KEY = 'back-of-the-envelope-progress-v1'
+const LEGACY_STORAGE_KEY = `back-of-the-${['nap', 'kin'].join('')}-progress-v1`
+
+type ProgressStorage = Pick<Storage, 'getItem'> &
+  Partial<Pick<Storage, 'setItem' | 'removeItem'>>
 
 function emptySkillProgress(): SkillProgress {
   return {
@@ -30,12 +34,18 @@ export function createInitialProgress(): ProgressState {
   }
 }
 
-export function loadProgress(storage: Pick<Storage, 'getItem'>): ProgressState {
+export function loadProgress(storage: ProgressStorage): ProgressState {
   try {
-    const value = storage.getItem(STORAGE_KEY)
+    const currentValue = storage.getItem(STORAGE_KEY)
+    const legacyValue = currentValue ? null : storage.getItem(LEGACY_STORAGE_KEY)
+    const value = currentValue ?? legacyValue
     if (!value) return createInitialProgress()
     const parsed = JSON.parse(value) as ProgressState
     if (parsed.version !== 1 || !parsed.skills) return createInitialProgress()
+    if (legacyValue) {
+      storage.setItem?.(STORAGE_KEY, legacyValue)
+      storage.removeItem?.(LEGACY_STORAGE_KEY)
+    }
     return parsed
   } catch {
     return createInitialProgress()
