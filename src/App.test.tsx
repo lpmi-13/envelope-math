@@ -15,7 +15,11 @@ describe('App learning flow', () => {
     render(<App />)
 
     expect(
-      screen.getByRole('heading', { name: /big systems start with small maths/i }),
+      screen.getByRole('heading', { name: /make big systems feel small/i }),
+    ).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: /enter the workspace/i }))
+    expect(
+      screen.getByRole('heading', { name: /estimate at the speed of thought/i }),
     ).toBeInTheDocument()
 
     await user.click(screen.getByRole('button', { name: /foundations/i }))
@@ -49,6 +53,7 @@ describe('App learning flow', () => {
     const user = userEvent.setup()
     render(<App />)
 
+    await user.click(screen.getByRole('button', { name: /enter the workspace/i }))
     await user.click(screen.getByRole('button', { name: /foundations/i }))
     await user.click(screen.getByRole('button', { name: /try it yourself/i }))
 
@@ -65,5 +70,18 @@ describe('App learning flow', () => {
     await user.click(screen.getByRole('button', { name: /check my second try/i }))
     expect(screen.getByText('Compare your path with the walkthrough.')).toBeInTheDocument()
     expect(screen.getByText('The napkin version')).toBeInTheDocument()
+  })
+
+  it('reopens the introduction from the header without resetting progress', async () => {
+    const user = userEvent.setup()
+    render(<App />)
+
+    await user.click(screen.getByRole('button', { name: /enter the workspace/i }))
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+
+    await user.click(screen.getByRole('button', { name: /about this guide/i }))
+    expect(screen.getByRole('dialog')).toHaveAccessibleName(/make big systems feel small/i)
+    await user.keyboard('{Escape}')
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
   })
 })

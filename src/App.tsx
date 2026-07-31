@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { scenarios, scenariosBySkill } from './content/scenarios'
 import { skills, skillsById } from './content/skills'
 import { getFeedback, gradeAnswer } from './domain/grading'
@@ -24,6 +24,8 @@ import type {
 import { answerUnitOptions, formatAnswer, units } from './domain/units'
 
 type Screen = 'dashboard' | 'intro' | 'practice' | 'reference'
+
+const INTRO_STORAGE_KEY = 'napkin-intro-seen'
 
 const emptyAnswer: LearnerAnswer = {
   formulaId: '',
@@ -83,9 +85,7 @@ function getWeakestSkill(progress: ProgressState, after?: SkillId): SkillId {
 function BrandMark() {
   return (
     <span className="brand-mark" aria-hidden="true">
-      <span />
-      <span />
-      <span />
+      <span>≈</span>
     </span>
   )
 }
@@ -96,33 +96,54 @@ function ArrowIcon() {
 
 function AppHeader({
   onHome,
+  onPractice,
   onReference,
+  onAbout,
   screen,
+  percent,
 }: {
   onHome: () => void
+  onPractice: () => void
   onReference: () => void
+  onAbout: () => void
   screen: Screen
+  percent: number
 }) {
   return (
     <header className="site-header">
       <button className="brand" onClick={onHome} aria-label="Back to lesson map">
         <BrandMark />
-        <span>Back of the Napkin</span>
+        <span>Napkin Math</span>
       </button>
-      <nav aria-label="Primary navigation">
+      <nav className="mode-tabs" aria-label="Workspace modes">
         <button
-          className={screen === 'dashboard' ? 'nav-link active' : 'nav-link'}
+          className={screen === 'dashboard' || screen === 'intro' ? 'nav-link active' : 'nav-link'}
           onClick={onHome}
         >
-          Lessons
+          Learn
+        </button>
+        <button
+          className={screen === 'practice' ? 'nav-link active' : 'nav-link'}
+          onClick={onPractice}
+        >
+          Practice
         </button>
         <button
           className={screen === 'reference' ? 'nav-link active' : 'nav-link'}
           onClick={onReference}
         >
-          Quick reference
+          Reference
         </button>
       </nav>
+      <div className="header-actions">
+        <span className="header-progress" aria-label={`${percent}% of learning path complete`}>
+          <span>{percent}%</span>
+          <span>complete</span>
+        </span>
+        <button className="about-button" onClick={onAbout} aria-label="About this guide" aria-haspopup="dialog">
+          ?
+        </button>
+      </div>
     </header>
   )
 }
@@ -147,60 +168,44 @@ function Dashboard({
   ).length
 
   return (
-    <main id="main-content">
-      <section className="hero page-shell" aria-labelledby="hero-title">
-        <div className="hero-copy">
-          <p className="kicker">A field guide to thinking at scale</p>
-          <h1 id="hero-title" aria-label="Big systems start with small maths.">
-            Big systems start with
-            <span className="scribble"> small maths.</span>
+    <main id="main-content" className="dashboard-page">
+      <div className="dashboard-shell page-shell">
+        <section className="hero" aria-labelledby="hero-title">
+          <p className="trust-pill"><span aria-hidden="true">✓</span> Built for system-design practice</p>
+          <h1 id="hero-title" aria-label="Estimate at the speed of thought.">
+            Estimate at the <span>speed of thought.</span>
           </h1>
           <p className="hero-intro">
-            Build the instinct to turn messy requirements into useful numbers—without
-            reaching for a spreadsheet.
+            Turn messy requirements into useful numbers, check the units, and make the
+            design decision—without reaching for a spreadsheet.
           </p>
           <div className="hero-actions">
             <button className="button button-primary" onClick={onContinue}>
-              {practisedCount > 0 ? 'Continue learning' : 'Start with the basics'}
-              <ArrowIcon />
+              {practisedCount > 0 ? 'Continue learning' : 'Start the learning path'}
+              <span aria-hidden="true">→</span>
             </button>
             <button className="button button-quiet" onClick={onMixedPractice}>
-              Mixed practice
+              Try mixed practice
             </button>
           </div>
-        </div>
-        <div className="hero-visual" aria-label={`${percent}% of the learning path complete`}>
-          <div className="napkin-card">
-            <div className="napkin-pin">today&apos;s shortcut</div>
-            <p>requests / day</p>
-            <div className="fraction">
-              <strong>86000</strong>
-              <span>≈</span>
-              <strong>100K</strong>
+          <div className="hero-facts" aria-label="Learning overview">
+            <span><strong>{skills.length}</strong> focused skills</span>
+            <span><strong>5 min</strong> per lesson</span>
+            <span><strong>{reviewCount}</strong> reviews due</span>
+          </div>
+        </section>
+
+        <section className="curriculum-section" aria-labelledby="curriculum-title">
+          <div className="section-heading">
+            <div>
+              <p className="kicker">Learning path</p>
+              <h2 id="curriculum-title">Choose a skill</h2>
             </div>
-            <svg viewBox="0 0 280 75" role="img" aria-label="A sketch showing daily requests becoming requests per second">
-              <path d="M8 17 C70 4, 113 27, 174 13 S248 12, 271 6" />
-              <path d="M16 51 C77 65, 111 42, 178 59 S245 52, 268 65" />
-              <path d="M224 52 l38 13 -31 5" />
-            </svg>
-            <span className="napkin-note">close enough to design with →</span>
+            <div className="path-summary">
+              <strong>{percent}%</strong>
+              <span>path complete</span>
+            </div>
           </div>
-          <div className="progress-stamp">
-            <strong>{percent}%</strong>
-            <span>path complete</span>
-          </div>
-        </div>
-      </section>
-
-      <section className="curriculum-section page-shell" aria-labelledby="curriculum-title">
-        <div className="section-heading">
-          <div>
-            <p className="kicker">Six small habits</p>
-            <h2 id="curriculum-title">Build your estimation toolkit</h2>
-          </div>
-          <p>Each lesson takes about five focused minutes.</p>
-        </div>
-
         <div className="module-grid">
           {skills.map((skill) => {
             const skillProgress = progress.skills[skill.id]
@@ -220,40 +225,15 @@ function Dashboard({
                 <strong>{skill.shortName}</strong>
                 <span className="module-description">{skill.description}</span>
                 <span className="module-footer">
-                  <span>{skillProgress.correct}/4 scenarios</span>
+                  <span>{skillProgress.correct}/4 complete</span>
                   <span aria-hidden="true">→</span>
                 </span>
               </button>
             )
           })}
         </div>
-      </section>
-
-      <section className="practice-banner page-shell" aria-labelledby="practice-title">
-        <div className="practice-sketch" aria-hidden="true">
-          <span>?</span>
-          <span>×</span>
-          <span>10⁶</span>
-        </div>
-        <div>
-          <p className="kicker">No labels. No training wheels.</p>
-          <h2 id="practice-title">Can you spot which estimate matters?</h2>
-          <p>
-            Mixed practice interleaves every topic and prioritises the skills that
-            need attention.
-          </p>
-        </div>
-        <button className="button button-dark" onClick={onMixedPractice}>
-          Start a mixed round <ArrowIcon />
-        </button>
-      </section>
-
-      {reviewCount > 0 && (
-        <p className="review-note page-shell" role="status">
-          {reviewCount} {reviewCount === 1 ? 'lesson is' : 'lessons are'} ready for a
-          cold review. A little forgetting makes retrieval stronger.
-        </p>
-      )}
+        </section>
+      </div>
     </main>
   )
 }
@@ -657,6 +637,99 @@ function QuickReference({ onReset }: { onReset: () => void }) {
   )
 }
 
+function IntroModal({
+  onClose,
+  onStartPractice,
+}: {
+  onClose: () => void
+  onStartPractice: () => void
+}) {
+  const dialogRef = useRef<HTMLDivElement>(null)
+  const startRef = useRef<HTMLButtonElement>(null)
+  const onCloseRef = useRef(onClose)
+
+  useEffect(() => {
+    onCloseRef.current = onClose
+  }, [onClose])
+
+  useEffect(() => {
+    const returnFocusTo = document.activeElement as HTMLElement | null
+    const previousOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    const frame = window.requestAnimationFrame(() => startRef.current?.focus())
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key !== 'Escape') return
+      event.preventDefault()
+      onCloseRef.current()
+    }
+    document.addEventListener('keydown', handleEscape)
+
+    return () => {
+      window.cancelAnimationFrame(frame)
+      document.removeEventListener('keydown', handleEscape)
+      document.body.style.overflow = previousOverflow
+      returnFocusTo?.focus()
+    }
+  }, [])
+
+  const handleKeyDown = (event: React.KeyboardEvent) => {
+    if (event.key !== 'Tab') return
+
+    const focusable = Array.from(
+      dialogRef.current?.querySelectorAll<HTMLElement>('button:not(:disabled)') ?? [],
+    )
+    if (focusable.length === 0) return
+    const first = focusable[0]
+    const last = focusable[focusable.length - 1]
+    if (event.shiftKey && document.activeElement === first) {
+      event.preventDefault()
+      last?.focus()
+    } else if (!event.shiftKey && document.activeElement === last) {
+      event.preventDefault()
+      first?.focus()
+    }
+  }
+
+  return (
+    <div className="intro-overlay">
+      <div
+        className="intro-modal"
+        ref={dialogRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="intro-title"
+        aria-describedby="intro-description"
+        onKeyDown={handleKeyDown}
+      >
+        <button className="modal-close" onClick={onClose} aria-label="Close introduction">
+          ×
+        </button>
+        <div className="modal-brand"><BrandMark /></div>
+        <p className="kicker">A five-minute field guide</p>
+        <h2 id="intro-title">Make big systems feel small.</h2>
+        <p id="intro-description" className="modal-intro">
+          Practise the quick estimates that turn vague scale into a concrete design
+          decision. You will show the method, magnitude, unit, and implication.
+        </p>
+        <div className="modal-steps" aria-label="How it works">
+          <div><span>01</span><strong>Pick a skill</strong><p>Start with a worked example.</p></div>
+          <div><span>02</span><strong>Build the estimate</strong><p>Round, calculate, and keep units visible.</p></div>
+          <div><span>03</span><strong>Make the call</strong><p>Connect the number to the architecture.</p></div>
+        </div>
+        <div className="modal-actions">
+          <button ref={startRef} className="button button-primary" onClick={onClose}>
+            Enter the workspace <span aria-hidden="true">→</span>
+          </button>
+          <button className="modal-text-button" onClick={onStartPractice}>
+            Or start with a mixed challenge
+          </button>
+        </div>
+        <p className="modal-note">Progress stays in this browser. No account or timer.</p>
+      </div>
+    </div>
+  )
+}
+
 export default function App() {
   const [screen, setScreen] = useState<Screen>('dashboard')
   const [progress, setProgress] = useState<ProgressState>(() =>
@@ -669,6 +742,11 @@ export default function App() {
   const [result, setResult] = useState<GradeResult | null>(null)
   const [attempt, setAttempt] = useState(0)
   const [reveal, setReveal] = useState(false)
+  const [showIntro, setShowIntro] = useState(() =>
+    typeof window === 'undefined'
+      ? false
+      : window.localStorage.getItem(INTRO_STORAGE_KEY) !== 'true',
+  )
 
   const scenario = scenarios.find((item) => item.id === scenarioId) ?? scenarios[0]!
 
@@ -740,6 +818,16 @@ export default function App() {
     setMixed(false)
   }
 
+  const closeIntro = () => {
+    window.localStorage.setItem(INTRO_STORAGE_KEY, 'true')
+    setShowIntro(false)
+  }
+
+  const startFromIntro = () => {
+    closeIntro()
+    startMixed()
+  }
+
   const resetProgress = () => {
     if (!window.confirm('Reset all progress stored in this browser?')) return
     window.localStorage.removeItem(STORAGE_KEY)
@@ -751,8 +839,11 @@ export default function App() {
       <a className="skip-link" href="#main-content">Skip to content</a>
       <AppHeader
         screen={screen}
+        percent={completionPercent(progress)}
         onHome={goHome}
+        onPractice={startMixed}
         onReference={() => setScreen('reference')}
+        onAbout={() => setShowIntro(true)}
       />
 
       {screen === 'dashboard' && (
@@ -787,11 +878,9 @@ export default function App() {
         />
       )}
       {screen === 'reference' && <QuickReference onReset={resetProgress} />}
-
-      <footer className="site-footer page-shell">
-        <span>Estimate boldly. State assumptions. Check the units.</span>
-        <span>Built for system-design practice.</span>
-      </footer>
+      {showIntro && (
+        <IntroModal onClose={closeIntro} onStartPractice={startFromIntro} />
+      )}
     </div>
   )
 }
