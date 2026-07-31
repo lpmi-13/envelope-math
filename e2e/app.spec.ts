@@ -42,6 +42,14 @@ test('shows the complete lesson map, quick reference, and social preview metadat
   expect(preview.ok()).toBe(true)
   expect(preview.headers()['content-type']).toContain('image/png')
 
+  const faviconHref = await page
+    .locator('link[rel="icon"][sizes="32x32"]')
+    .getAttribute('href')
+  expect(faviconHref).toMatch(/^\/assets\/favicon-32-[A-Za-z0-9_-]{8,}\.png$/)
+  const favicon = await request.get(faviconHref!)
+  expect(favicon.ok()).toBe(true)
+  expect(favicon.headers()['content-type']).toContain('image/png')
+
   const document = await request.get('/')
   expect(document.headers()['content-security-policy']).toContain("default-src 'none'")
   expect(document.headers()['content-security-policy']).toContain("style-src-attr 'none'")
