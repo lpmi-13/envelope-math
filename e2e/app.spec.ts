@@ -7,9 +7,21 @@ test.beforeEach(async ({ page }) => {
   await page.getByRole('button', { name: /enter the workspace/i }).click()
 })
 
-test('shows the complete lesson map and quick reference', async ({ page }) => {
+test('shows the complete lesson map, quick reference, and social preview metadata', async ({ page, request }) => {
   await expect(page.getByRole('heading', { name: /estimate at the speed of thought/i })).toBeVisible()
   await expect(page.locator('.module-card')).toHaveCount(6)
+
+  await expect(page.locator('meta[property="og:image"]')).toHaveAttribute(
+    'content',
+    'https://napkin-math.netlify.app/social-preview.png',
+  )
+  await expect(page.locator('meta[name="twitter:card"]')).toHaveAttribute(
+    'content',
+    'summary_large_image',
+  )
+  const preview = await request.get('/social-preview.png')
+  expect(preview.ok()).toBe(true)
+  expect(preview.headers()['content-type']).toContain('image/png')
 
   await page.getByRole('button', { name: 'Reference' }).click()
   await expect(page.getByRole('heading', { name: 'Your pocket napkin' })).toBeVisible()
