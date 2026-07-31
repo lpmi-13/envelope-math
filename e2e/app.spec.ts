@@ -1,10 +1,24 @@
 import { expect, test } from '@playwright/test'
 
 test.beforeEach(async ({ page }) => {
+  await page.addInitScript(() => {
+    const violations: string[] = []
+    Object.defineProperty(window, '__cspViolations', { value: violations })
+    document.addEventListener('securitypolicyviolation', (event) => {
+      violations.push(`${event.violatedDirective}: ${event.blockedURI}`)
+    })
+  })
   await page.goto('/')
   await page.evaluate(() => localStorage.clear())
   await page.reload()
   await page.getByRole('button', { name: /enter the workspace/i }).click()
+})
+
+test.afterEach(async ({ page }) => {
+  const violations = await page.evaluate(
+    () => (window as typeof window & { __cspViolations: string[] }).__cspViolations,
+  )
+  expect(violations).toEqual([])
 })
 
 test('shows the complete lesson map, quick reference, and social preview metadata', async ({ page, request }) => {
@@ -22,6 +36,12 @@ test('shows the complete lesson map, quick reference, and social preview metadat
   const preview = await request.get('/social-preview.png')
   expect(preview.ok()).toBe(true)
   expect(preview.headers()['content-type']).toContain('image/png')
+
+  const document = await request.get('/')
+  expect(document.headers()['content-security-policy']).toContain("default-src 'none'")
+  expect(document.headers()['content-security-policy']).toContain("style-src-attr 'none'")
+  expect(document.headers()['cross-origin-opener-policy']).toBe('same-origin')
+  expect(document.headers()['x-frame-options']).toBe('DENY')
 
   await page.getByRole('button', { name: 'Reference' }).click()
   await expect(page.getByRole('heading', { name: 'Your pocket napkin' })).toBeVisible()

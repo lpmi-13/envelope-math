@@ -39,6 +39,34 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
+body.modal-open {
+  overflow: hidden;
+}
+
+[data-skill="foundations"] {
+  --module-accent: #55d6e5;
+}
+
+[data-skill="load"] {
+  --module-accent: #4da7f3;
+}
+
+[data-skill="storage"] {
+  --module-accent: #5cd6b6;
+}
+
+[data-skill="bandwidth"] {
+  --module-accent: #7b72f6;
+}
+
+[data-skill="latency"] {
+  --module-accent: #b087f5;
+}
+
+[data-skill="compute"] {
+  --module-accent: #77a9ff;
+}
+
 button,
 input,
 select {
@@ -617,6 +645,7 @@ h3 {
   height: 56px;
   place-items: center;
   color: #171548;
+  background: var(--module-accent);
   border: 1px solid rgba(255, 255, 255, 0.34);
   border-radius: 16px;
   box-shadow: 0 10px 25px rgba(8, 7, 40, 0.2);

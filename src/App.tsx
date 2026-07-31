@@ -214,9 +214,9 @@ function Dashboard({
             return (
               <button
                 className="module-card"
+                data-skill={skill.id}
                 key={skill.id}
                 onClick={() => onOpenSkill(skill.id)}
-                style={{ '--module-accent': skill.accent } as React.CSSProperties}
               >
                 <span className="module-number">{skill.number}</span>
                 <span className="module-status">
@@ -257,11 +257,7 @@ function LessonIntro({
     <main id="main-content" className="lesson-shell page-shell">
       <button className="back-button" onClick={onBack}>← Lesson map</button>
       <section className="lesson-heading">
-        <div
-          className="lesson-number"
-          style={{ backgroundColor: skill.accent }}
-          aria-hidden="true"
-        >
+        <div className="lesson-number" data-skill={skill.id} aria-hidden="true">
           {skill.number}
         </div>
         <div>
@@ -654,8 +650,7 @@ function IntroModal({
 
   useEffect(() => {
     const returnFocusTo = document.activeElement as HTMLElement | null
-    const previousOverflow = document.body.style.overflow
-    document.body.style.overflow = 'hidden'
+    document.body.classList.add('modal-open')
     const frame = window.requestAnimationFrame(() => startRef.current?.focus())
     const handleEscape = (event: KeyboardEvent) => {
       if (event.key !== 'Escape') return
@@ -667,7 +662,7 @@ function IntroModal({
     return () => {
       window.cancelAnimationFrame(frame)
       document.removeEventListener('keydown', handleEscape)
-      document.body.style.overflow = previousOverflow
+      document.body.classList.remove('modal-open')
       returnFocusTo?.focus()
     }
   }, [])

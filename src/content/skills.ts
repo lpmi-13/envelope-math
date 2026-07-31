@@ -8,7 +8,6 @@ export const skills: SkillDefinition[] = [
     title: 'Make the numbers friendly',
     description: 'Round aggressively, keep the units visible, and work in powers of ten.',
     outcome: 'Turn awkward quantities into useful mental estimates.',
-    accent: '#55d6e5',
     reference: [
       '1 day = 86,400 seconds ≈ 100,000',
       '8 bits = 1 byte',
@@ -34,7 +33,6 @@ export const skills: SkillDefinition[] = [
     title: 'Find the busy second',
     description: 'Move from users and daily behaviour to average and peak request rates.',
     outcome: 'Estimate average and peak requests per second.',
-    accent: '#4da7f3',
     reference: [
       'Average RPS = daily requests ÷ seconds/day',
       'Peak RPS = average RPS × peak multiplier',
@@ -60,7 +58,6 @@ export const skills: SkillDefinition[] = [
     title: 'Follow every stored byte',
     description: 'Combine object counts, object sizes, retention, and copies.',
     outcome: 'Estimate daily and retained storage footprints.',
-    accent: '#5cd6b6',
     reference: [
       'Storage = objects × bytes/object × retention',
       'Include replicas, indexes, and metadata when relevant.',
@@ -86,7 +83,6 @@ export const skills: SkillDefinition[] = [
     title: 'Move bytes through time',
     description: 'Estimate ingress and egress while keeping bits and bytes straight.',
     outcome: 'Turn traffic and payload sizes into network throughput.',
-    accent: '#7b72f6',
     reference: [
       'Bandwidth = transfers/second × bytes/transfer',
       'Network rates are normally expressed in bits/second.',
@@ -112,7 +108,6 @@ export const skills: SkillDefinition[] = [
     title: 'Trace the critical path',
     description: 'Distinguish sequential work from parallel work and find what users wait for.',
     outcome: 'Estimate end-to-end response time from component latencies.',
-    accent: '#b087f5',
     reference: [
       'Sequential latency = sum of every dependency',
       'Parallel latency = the slowest required branch',
@@ -138,7 +133,6 @@ export const skills: SkillDefinition[] = [
     title: 'Turn work into cores',
     description: 'Translate request rate and CPU time into capacity with realistic headroom.',
     outcome: 'Estimate core demand and adjust for target utilisation.',
-    accent: '#77a9ff',
     reference: [
       'Cores at 100% = RPS × CPU seconds/request',
       '10 ms = 0.01 CPU seconds',

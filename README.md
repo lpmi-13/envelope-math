@@ -54,7 +54,15 @@ The committed `netlify.toml` configures:
 
 - Build command: `npm run build`
 - Publish directory: `dist`
-- Node version: 22
+- Node version: 24
+- A deny-by-default Content Security Policy and strict browser isolation headers
+- One-year immutable browser and CDN caching for content-hashed `/assets/*` files
+- Revalidated browser caching and deploy-aware, one-year CDN caching for HTML
+
+Production builds emit JavaScript and CSS as `assets/<name>-<content-hash>.<ext>` and
+run `npm run verify:build` automatically. The build fails if a compiled asset or an
+asset reference in `index.html` does not contain a hash. `social-preview.png` keeps a
+stable URL for social crawlers, so it uses a shorter browser TTL while Netlify's CDN
+invalidates it atomically on the next deploy.
 
 Connect the repository to a Netlify project. Pushes to the production branch will build and publish automatically, while pull requests receive deploy previews. The app has no client-side URL routes, so it does not require an SPA fallback rewrite.
-

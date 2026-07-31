@@ -5,9 +5,53 @@
 [build.environment]
   NODE_VERSION = "24"
 
+# Vite content-hashes every compiled asset under /assets, so browsers and
+# intermediary CDNs can keep those immutable files indefinitely.
+[[headers]]
+  for = "/assets/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+    CDN-Cache-Control = "public, s-maxage=31536000, immutable"
+    Netlify-CDN-Cache-Control = "public, s-maxage=31536000, immutable"
+
+# This URL is intentionally stable because social crawlers consume it directly.
+[[headers]]
+  for = "/social-preview.png"
+  [headers.values]
+    Cache-Control = "public, max-age=86400, stale-while-revalidate=604800"
+    CDN-Cache-Control = "public, s-maxage=31536000, must-revalidate"
+    Netlify-CDN-Cache-Control = "public, s-maxage=31536000, must-revalidate"
+
+# Keep documents fresh in browsers while Netlify and downstream CDNs cache
+# them until the next atomic deploy invalidates the current representation.
+[[headers]]
+  for = "/"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
+    CDN-Cache-Control = "public, s-maxage=31536000, must-revalidate"
+    Netlify-CDN-Cache-Control = "public, s-maxage=31536000, must-revalidate"
+
+[[headers]]
+  for = "/index.html"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
+    CDN-Cache-Control = "public, s-maxage=31536000, must-revalidate"
+    Netlify-CDN-Cache-Control = "public, s-maxage=31536000, must-revalidate"
+
 [[headers]]
   for = "/*"
   [headers.values]
+    Content-Security-Policy = "default-src 'none'; base-uri 'none'; connect-src 'none'; font-src 'none'; form-action 'none'; frame-ancestors 'none'; frame-src 'none'; img-src 'self'; manifest-src 'none'; media-src 'none'; object-src 'none'; script-src 'self'; script-src-attr 'none'; style-src 'self'; style-src-attr 'none'; worker-src 'none'; require-trusted-types-for 'script'; trusted-types 'none'; upgrade-insecure-requests"
+    Cross-Origin-Embedder-Policy = "require-corp"
+    Cross-Origin-Opener-Policy = "same-origin"
+    Cross-Origin-Resource-Policy = "same-origin"
+    Origin-Agent-Cluster = "?1"
+    Permissions-Policy = "accelerometer=(), ambient-light-sensor=(), attribution-reporting=(), autoplay=(), bluetooth=(), browsing-topics=(), camera=(), clipboard-read=(), clipboard-write=(), compute-pressure=(), cross-origin-isolated=(), display-capture=(), encrypted-media=(), fullscreen=(), gamepad=(), geolocation=(), gyroscope=(), hid=(), identity-credentials-get=(), idle-detection=(), local-fonts=(), magnetometer=(), microphone=(), midi=(), otp-credentials=(), payment=(), picture-in-picture=(), private-aggregation=(), publickey-credentials-create=(), publickey-credentials-get=(), screen-wake-lock=(), serial=(), speaker-selection=(), storage-access=(), usb=(), web-share=(), window-management=(), xr-spatial-tracking=()"
+    Referrer-Policy = "no-referrer"
+    Strict-Transport-Security = "max-age=63072000; includeSubDomains; preload"
+    X-DNS-Prefetch-Control = "off"
+    X-Download-Options = "noopen"
+    X-Frame-Options = "DENY"
     X-Content-Type-Options = "nosniff"
-    Referrer-Policy = "strict-origin-when-cross-origin"
-    Permissions-Policy = "camera=(), microphone=(), geolocation=()"
+    X-Permitted-Cross-Domain-Policies = "none"
+    X-XSS-Protection = "0"

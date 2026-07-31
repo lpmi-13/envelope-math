@@ -67,7 +67,6 @@ export interface SkillDefinition {
   title: string
   description: string
   outcome: string
-  accent: string
   reference: string[]
   workedExample: WorkedExample
 }
